@@ -1,0 +1,4 @@
+; $Id$
+name = Private Download
+description = Provides private download directory when the file system is configured for public download access.
+core = 6.x
