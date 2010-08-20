@@ -24,7 +24,7 @@ function private_download_menu() {
   $items['system/files/%'] = array(
     'access arguments' => array('access private download directory'),
     'page callback' => 'file_download',
-    'page arguments' => array(variable_get('private_download_directory', 'private')),
+    'page arguments' => array(2),
     'type' => MENU_CALLBACK,
   );
   $items['admin/settings/private_download'] = array(
@@ -42,8 +42,8 @@ function private_download_menu() {
 /**
  * Implementation of hook_file_download().
  */
-function private_download_file_download($file) {
-  $header = array('Content-Type: '. file_get_mimetype($file));
+function private_download_file_download($filepath) {
+  $header = array('Content-Type: '. file_get_mimetype($filepath), 'Content-Length: '. filesize(file_create_path($filepath)));
   // add additional file header attributes
   return array_merge($header, explode("\n", variable_get('private_download_header', "Content-Transfer-Encoding: binary\nCache-Control: max-age=60, must-revalidate")));
 }
@@ -60,7 +60,7 @@ function private_download_admin_form() {
       '#required' => TRUE,
       '#description' => t('The directory where the private download files will be stored. Drupal will need to have write access to this directory.'),
     );
-    $htaccess = variable_get('private_download_htaccess', "<IfModule mod_rewrite.c>\n  RewriteEngine on\n  RewriteBase /system/files/private\n  RewriteRule ^(.*)$ $1 [L,R=301]\n</IfModule>");
+    $htaccess = variable_get('private_download_htaccess', "<IfModule mod_rewrite.c>\n  RewriteEngine on\n  RewriteBase ". base_path() ."system/files/private\n  RewriteRule ^(.*)$ $1 [L,R=301]\n</IfModule>");
     $form['private_download_htaccess'] = array(
       '#type' => 'textarea', 
       '#title' => t('htaccess content'),
