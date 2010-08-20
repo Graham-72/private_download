@@ -67,7 +67,7 @@ function private_download_admin_form() {
       '#default_value' => $htaccess,
       '#required' => TRUE,
       '#rows' => 8,
-      '#description' => t('Contents of htaccess file in the private download directory. The RewriteBase path must start with "/system/" followed by the !file_system directory name and ending with the private download directory name defined above. Exp. /system/files/private', array('!file_system' => l('file system path', 'admin/settings/file-system'))),
+      '#description' => t('Contents of htaccess file in the private download directory. The RewriteBase path must start with the base path ("/" plus the relative directory path from the webroot, if any) followed by "system/" and the !file_system directory name and ending with the private download directory name defined above. Exp. /system/files/private, /drupal/system/files/private', array('!file_system' => l('file system path', 'admin/settings/file-system'))),
     );
     $header = variable_get('private_download_header', "Content-Transfer-Encoding: binary\nCache-Control: max-age=60, must-revalidate");
     $form['private_download_header'] = array(
