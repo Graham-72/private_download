@@ -42,8 +42,13 @@ function private_download_menu() {
  * Implementation of hook_file_download().
  */
 function private_download_file_download($filepath) {
-  $header = array('Content-Type: '. file_get_mimetype($filepath), 'Content-Length: '. filesize(file_create_path($filepath)));
-  // add additional file header attributes
+  // define default file header attributes
+  $header = array(
+    'Content-Type: '. file_get_mimetype($filepath),
+    'Content-Length: '. filesize(file_create_path($filepath)),
+    'Content-Disposition: attachment; filename="'. mime_header_encode(basename($filepath)) .'"'
+  );
+  // additional user-defined file header attributes (if any)
   return array_merge($header, explode("\n", variable_get('private_download_header', "Content-Transfer-Encoding: binary\nCache-Control: max-age=60, must-revalidate")));
 }
 
