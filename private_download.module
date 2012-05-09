@@ -33,19 +33,34 @@ function private_download_menu() {
  * Implementation of hook_file_download().
  */
 function private_download_file_download($filepath) {
-  if (strpos($filepath, variable_get('private_download_directory', 'private') .'/') === 0) {
-    if (!user_access('access private download directory')) {
+  $prefix = variable_get('private_download_directory', 'private') .'/';
+  if (strpos($filepath, $prefix) === 0) {
+    //
+    $access = module_invoke_all('private_download_access', substr($filepath, strlen($prefix)));
+    if (!in_array(TRUE, $access, TRUE) && (in_array(FALSE, $access, TRUE) || !user_access('access private download directory'))) {
       return -1;
     }
 
-    // define default file header attributes
+    //
+    $type = file_get_mimetype($filepath);
+    $disposition = 'attachment';
+    $inline_patterns = array_filter(explode("\n", variable_get('private_download_inline_patterns', '')));
+    foreach ($inline_patterns as $inline_pattern) {
+      if (preg_match('`'. $inline_pattern .'`', $type)) {
+        $disposition = 'inline';
+        break;
+      }
+    }
+
+    // Define default file header attributes.
     $header = array(
-      'Content-Type: '. file_get_mimetype($filepath),
+      'Content-Type: '. $type,
       'Content-Length: '. filesize(file_create_path($filepath)),
-      'Content-Disposition: attachment; filename="'. mime_header_encode(basename($filepath)) .'"'
+      'Content-Disposition: '. $disposition .'; filename="'. mime_header_encode(basename($filepath)) .'"'
     );
-    // additional user-defined file header attributes (if any)
-    return array_merge($header, explode("\n", variable_get('private_download_header', "Content-Transfer-Encoding: binary\nCache-Control: max-age=60, must-revalidate")));
+
+    // Add user-defined file header attributes, if any.
+    return array_merge($header, explode("\n", variable_get('private_download_header', "Content-Transfer-Encoding: binary\nCache-Control: private")));
   }
 }
 
@@ -70,7 +85,7 @@ function private_download_admin_form() {
       '#rows' => 8,
       '#description' => t('Contents of htaccess file in the private download directory. The RewriteBase path must start with the base path ("/" plus the relative directory path from the webroot, if any) followed by "system/" and the !file_system directory name and ending with the private download directory name defined above. Exp. /system/files/private, /drupal/system/files/private', array('!file_system' => l('file system path', 'admin/settings/file-system'))),
     );
-    $header = variable_get('private_download_header', "Content-Transfer-Encoding: binary\nCache-Control: max-age=60, must-revalidate");
+    $header = variable_get('private_download_header', "Content-Transfer-Encoding: binary\nCache-Control: private");
     $form['private_download_header'] = array(
       '#type' => 'textarea',
       '#title' => t('file headers'),
