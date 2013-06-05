@@ -47,22 +47,25 @@ function private_download_file_download($filepath) {
 
     // Check whether to serve file as attachment or inline.
     $type = file_get_mimetype($filepath);
-    $disposition = 'attachment';
+    $disposition_attachment = TRUE;
     if (variable_get('private_download_disposition', 'attachment') == 'inline') {
       $inline_patterns = variable_get('private_download_inline_patterns', array('^text/', '^image/', '\bflash$', '\bpdf$'));
       foreach ($inline_patterns as $pattern) {
         if (preg_match('`'. $pattern .'`', $type)) {
-          $disposition = 'inline';
+          $disposition_attachment = FALSE;
           break;
         }
       }
     }
 
     // Define default file header attributes.
+    // We only send the "Content-Disposition" header field for disposition-type
+    // "attachment". Otherwise, we unset it rather than sending a
+    // disposition-type "inline", to minimize potential problems.
     $header = array(
       'Content-Type: '. $type,
       'Content-Length: '. filesize(file_create_path($filepath)),
-      'Content-Disposition: '. $disposition .'; filename="'. mime_header_encode(basename($filepath)) .'"',
+      'Content-Disposition: '. ($disposition_attachment ? 'attachment; filename="'. mime_header_encode(basename($filepath)) .'"' : ''),
     );
 
     // Add user-defined file header attributes, if any.
