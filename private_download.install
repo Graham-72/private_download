@@ -7,14 +7,18 @@
  */
 
 /**
- * Implementation of hook_uninstall().
+ * Implements hook_uninstall().
  */
 function private_download_uninstall() {
-  db_query("DELETE FROM {variable} WHERE name LIKE 'private_download_%%'");
+  // TODO Please review the conversion of this statement to the D7 database API syntax.
+  /* db_query("DELETE FROM {variable} WHERE name LIKE 'private_download_%%'") */
+  db_delete('variable')
+  ->condition('name', 'private_download_%%', 'LIKE')
+  ->execute();
 }
 
 /**
- * Implementation of hook_update_N().
+ * Implements hook_update_N().
  */
 function private_download_update_6001() {
   global $conf;
@@ -26,5 +30,8 @@ function private_download_update_6001() {
     }
   }
 
-  return array();
+  // hook_update_N() no longer returns a $ret array. Instead, return
+  // nothing or a translated string indicating the update ran successfully.
+  // See http://drupal.org/node/224333#update_sql.
+  return t('TODO Add a descriptive string here to show in the UI.') /* array() */;
 }

@@ -3,7 +3,7 @@
 /**
  * Private Download admin configuration form.
  */
-function private_download_admin_form() {
+function private_download_admin_form($form, &$form_state) {
   $form['private_download_directory'] = array(
     '#type' => 'textfield',
     '#title' => t('private download directory'),
@@ -12,14 +12,14 @@ function private_download_admin_form() {
     '#description' => t('The directory where the private download files will be stored. Drupal will need to have write access to this directory.'),
   );
 
-  $htaccess = variable_get('private_download_htaccess', "<IfModule mod_rewrite.c>\n  RewriteEngine on\n  RewriteBase ". base_path() ."system/files/private\n  RewriteRule ^(.*)$ $1 [L,R=301]\n</IfModule>");
+  $htaccess = variable_get('private_download_htaccess', "<IfModule mod_rewrite.c>\n  RewriteEngine on\n  RewriteBase " . base_path() . "system/files/private\n  RewriteRule ^(.*)$ $1 [L,R=301]\n</IfModule>");
   $form['private_download_htaccess'] = array(
-    '#type' => 'textarea', 
+    '#type' => 'textarea',
     '#title' => t('htaccess content'),
     '#default_value' => $htaccess,
     '#required' => TRUE,
     '#rows' => 8,
-    '#description' => t('Contents of htaccess file in the private download directory. The RewriteBase path must start with the base path ("/" plus the relative directory path from the webroot, if any) followed by "system/" and the !file_system directory name and ending with the private download directory name defined above. Exp. /system/files/private, /drupal/system/files/private', array('!file_system' => l('file system path', 'admin/settings/file-system'))),
+    '#description' => t('Contents of htaccess file in the private download directory. The RewriteBase path must start with the base path ("/" plus the relative directory path from the webroot, if any) followed by "system/" and the !file_system directory name and ending with the private download directory name defined above. Exp. /system/files/private, /drupal/system/files/private', array('!file_system' => l('file system path', 'admin/config/file-system'))),
   );
 
   $header = variable_get('private_download_header', "Content-Transfer-Encoding: binary\nCache-Control: private");
@@ -57,7 +57,7 @@ function private_download_admin_form() {
     '#title' => t('Allow/Deny priority'),
     '#default_value' => variable_get('private_download_allowdeny_priority', 'deny'),
     '#options' => array(
-      'deny'  => t('<em>deny</em> has priority over <em>allow</em>'),
+      'deny' => t('<em>deny</em> has priority over <em>allow</em>'),
       'allow' => t('<em>allow</em> has priority over <em>deny</em>'),
     ),
     '#required' => TRUE,
@@ -79,14 +79,14 @@ function private_download_admin_form() {
  * Validate handler.
  */
 function private_download_admin_form_validate($form, &$form_state) {
-  $directory = file_directory_path() .'/'. $form_state['values']['private_download_directory'];
-  if (!file_check_directory($directory, TRUE)) {
-    form_set_error('private_download_directory', t('The private download directory does not exist and the system was unable to create it. Please check your !file_system settings.', array('!file_system' => l('file system', 'admin/settings/file-system'))));
+  $directory = file_directory_path() . '/' . $form_state['values']['private_download_directory'];
+  if (!file_prepare_directory($directory, TRUE)) {
+    form_set_error('private_download_directory', t('The private download directory does not exist and the system was unable to create it. Please check your !file_system settings.', array('!file_system' => l('file system', 'admin/config/file-system'))));
   }
 
-  $needle = '/system/files/'. $form_state['values']['private_download_directory'] ."\r";
+  $needle = '/system/files/' . $form_state['values']['private_download_directory'] . "\r";
   if (!strstr($form_state['values']['private_download_htaccess'], $needle)) {
-    form_set_error('private_download_htaccess', t('The RewriteBase path does not equal %path in htaccess content.', array('%path' => '/system/files/'. $form_state['values']['private_download_directory'])));
+    form_set_error('private_download_htaccess', t('The RewriteBase path does not equal %path in htaccess content.', array('%path' => '/system/files/' . $form_state['values']['private_download_directory'])));
   }
 
   $inline_patterns = array_filter(array_map('trim', explode("\n", $form_state['values']['private_download_inline_patterns'])));
@@ -97,7 +97,7 @@ function private_download_admin_form_validate($form, &$form_state) {
  * Custom submit handler.
  */
 function private_download_admin_submit_handler($form, &$form_state) {
-  $filename = file_directory_path() .'/'. $form_state['values']['private_download_directory'] .'/.htaccess';
+  $filename = file_directory_path() . '/' . $form_state['values']['private_download_directory'] . '/.htaccess';
   if (!private_download_write($filename, $form_state['values']['private_download_htaccess'])) {
     // Failed to write the .htaccess file; log the error and return.
     watchdog('private_download', t('Unable to write data to file: !filename', array('!filename' => $filename)), 'error');

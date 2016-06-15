@@ -6,17 +6,22 @@
  */
 
 /**
- * Implementation of hook_perm().
+ * Implements hook_permission().
  */
-function private_download_perm() {
-  return array('access private download directory');
+function private_download_permission() {
+  return array(
+    'access private download directory' => array(
+      'title' => t('access private download directory'),
+      'description' => t('TODO Add a description for \'access private download directory\''),
+    ),
+  );
 }
 
 /**
- * Implementation of hook_menu().
+ * Implements hook_menu().
  */
 function private_download_menu() {
-  $items['admin/settings/private_download'] = array(
+  $items['admin/config/private_download'] = array(
     'title' => 'Private Download',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('private_download_admin_form'),
@@ -28,11 +33,11 @@ function private_download_menu() {
 }
 
 /**
- * Implementation of hook_file_download().
+ * Implements hook_file_download().
  */
 function private_download_file_download($filepath) {
   // We only care about files inside the private download directory.
-  $prefix = variable_get('private_download_directory', 'private') .'/';
+  $prefix = variable_get('private_download_directory', 'private') . '/';
   if (strpos($filepath, $prefix) === 0) {
 
     // Deny access?
@@ -51,7 +56,7 @@ function private_download_file_download($filepath) {
     if (variable_get('private_download_disposition', 'attachment') == 'inline') {
       $inline_patterns = variable_get('private_download_inline_patterns', array('^text/', '^image/', '\bflash$', '\bpdf$'));
       foreach ($inline_patterns as $pattern) {
-        if (preg_match('`'. $pattern .'`', $type)) {
+        if (preg_match('`' . $pattern . '`', $type)) {
           $disposition_attachment = FALSE;
           break;
         }
@@ -63,9 +68,9 @@ function private_download_file_download($filepath) {
     // "attachment". Otherwise, we unset it rather than sending a
     // disposition-type "inline", to minimize potential problems.
     $header = array(
-      'Content-Type: '. $type,
-      'Content-Length: '. filesize(file_create_path($filepath)),
-      'Content-Disposition: '. ($disposition_attachment ? 'attachment; filename="'. mime_header_encode(basename($filepath)) .'"' : ''),
+      'Content-Type: ' . $type,
+      'Content-Length: ' . filesize(file_create_path($filepath)),
+      'Content-Disposition: ' . ($disposition_attachment ? 'attachment; filename="' . mime_header_encode(basename($filepath)) . '"' : ''),
     );
 
     // Add user-defined file header attributes, if any.
@@ -75,7 +80,7 @@ function private_download_file_download($filepath) {
 
 /**
  * Write data to a file.
- * 
+ *
  * @param string
  * @param string
  * @return boolean
@@ -92,7 +97,7 @@ function private_download_write($filename, $content) {
 
 /**
  * Read data from a file.
- * 
+ *
  * @param string
  * @return string or boolean
  */
