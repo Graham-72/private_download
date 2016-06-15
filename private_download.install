@@ -10,11 +10,9 @@
  * Implements hook_uninstall().
  */
 function private_download_uninstall() {
-  // TODO Please review the conversion of this statement to the D7 database API syntax.
-  /* db_query("DELETE FROM {variable} WHERE name LIKE 'private_download_%%'") */
   db_delete('variable')
-  ->condition('name', 'private_download_%%', 'LIKE')
-  ->execute();
+    ->condition('name', 'private_download_%', 'LIKE')
+    ->execute();
 }
 
 /**
