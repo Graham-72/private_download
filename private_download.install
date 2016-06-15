@@ -16,7 +16,7 @@ function private_download_uninstall() {
 }
 
 /**
- * Implements hook_update_N().
+ * Remove old default private_download_header setting.
  */
 function private_download_update_6001() {
   global $conf;
@@ -27,9 +27,12 @@ function private_download_update_6001() {
       variable_del('private_download_header');
     }
   }
+}
 
-  // hook_update_N() no longer returns a $ret array. Instead, return
-  // nothing or a translated string indicating the update ran successfully.
-  // See http://drupal.org/node/224333#update_sql.
-  return t('TODO Add a descriptive string here to show in the UI.') /* array() */;
+/**
+ * Remove legacy settings for Drupal 7.
+ */
+function private_download_update_7000() {
+  variable_del('private_download_directory');
+  variable_del('private_download_htaccess');
 }
