@@ -91,36 +91,3 @@ function private_download_file_download($uri) {
     return array_merge($header, $user_defined_header);
   }
 }
-
-/**
- * Write data to a file.
- *
- * @param string
- * @param string
- * @return boolean
- */
-function private_download_write($filename, $content) {
-  // Write content to file; create file if not present.
-  $success = FALSE;
-  if ($handle = @fopen($filename, 'w+b')) {
-    $success = (fwrite($handle, $content) !== FALSE);
-    fclose($handle);
-  }
-  return $success;
-}
-
-/**
- * Read data from a file.
- *
- * @param string
- * @return string or boolean
- */
-function private_download_read($filename) {
-  // Get file content into a string.
-  $content = FALSE;
-  if ($handle = @fopen($filename, 'r')) {
-    $content = fread($handle, filesize($filename));
-    fclose($handle);
-  }
-  return $content;
-}
