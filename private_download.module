@@ -35,13 +35,11 @@ function private_download_menu() {
 /**
  * Implements hook_file_download().
  */
-function private_download_file_download($filepath) {
-  // We only care about files inside the private download directory.
-  $prefix = variable_get('private_download_directory', 'private') . '/';
-  if (strpos($filepath, $prefix) === 0) {
-
+function private_download_file_download($uri) {
+  // We only care about files in the private scheme.
+  if (file_uri_scheme($uri) == 'private') {
     // Deny access?
-    $access = module_invoke_all('private_download_access', substr($filepath, strlen($prefix)));
+    $access = module_invoke_all('private_download_access', file_uri_target($uri));
     $access[] = user_access('access private download directory');
     $allow = in_array(TRUE, $access, TRUE);
     $deny = in_array(FALSE, $access, TRUE);
@@ -51,7 +49,7 @@ function private_download_file_download($filepath) {
     }
 
     // Check whether to serve file as attachment or inline.
-    $type = file_get_mimetype($filepath);
+    $type = file_get_mimetype($uri);
     $disposition_attachment = TRUE;
     if (variable_get('private_download_disposition', 'attachment') == 'inline') {
       $inline_patterns = variable_get('private_download_inline_patterns', array('^text/', '^image/', '\bflash$', '\bpdf$'));
@@ -68,13 +66,29 @@ function private_download_file_download($filepath) {
     // "attachment". Otherwise, we unset it rather than sending a
     // disposition-type "inline", to minimize potential problems.
     $header = array(
-      'Content-Type: ' . $type,
-      'Content-Length: ' . filesize(file_create_path($filepath)),
-      'Content-Disposition: ' . ($disposition_attachment ? 'attachment; filename="' . mime_header_encode(basename($filepath)) . '"' : ''),
+      'Content-Type' => $type,
+      'Content-Length' => filesize($uri),
+      'Content-Disposition' => $disposition_attachment ? 'attachment; filename="' . mime_header_encode(drupal_basename($uri)) . '"' : '',
     );
 
     // Add user-defined file header attributes, if any.
-    return array_merge($header, explode("\n", variable_get('private_download_header', "Content-Transfer-Encoding: binary\nCache-Control: private")));
+    $user_defined_header = array();
+    $private_download_header = variable_get('private_download_header', '');
+    if (!empty($private_download_header)) {
+      foreach (explode("\n", str_replace(array("\r\n", "\r"), "\n", $private_download_header)) as $attribute) {
+        $components = explode(':', $attribute);
+        if (count($components) == 2) {
+          $user_defined_header[trim($components[0])] = trim($components[1]);
+        }
+      }
+    }
+    if (empty($user_defined_header)) {
+      $user_defined_header = array(
+        'Content-Transfer-Encoding' => 'binary',
+        'Cache-Control' => 'private',
+      );
+    }
+    return array_merge($header, $user_defined_header);
   }
 }
 
