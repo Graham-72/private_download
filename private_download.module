@@ -21,7 +21,7 @@ function private_download_permission() {
  * Implements hook_menu().
  */
 function private_download_menu() {
-  $items['admin/config/private_download'] = array(
+  $items['admin/config/media/private_download'] = array(
     'title' => 'Private Download',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('private_download_admin_form'),
