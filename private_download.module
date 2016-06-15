@@ -12,7 +12,7 @@ function private_download_permission() {
   return array(
     'access private download directory' => array(
       'title' => t('access private download directory'),
-      'description' => t('TODO Add a description for \'access private download directory\''),
+      'description' => t('Files contained in the private file system are only accessible to users with this permission.'),
     ),
   );
 }
